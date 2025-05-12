@@ -113,3 +113,69 @@ button:hover {
     transform: translateY(0);
   }
 }
+
+.message-display {
+  display: none;
+  padding: 15px;
+  margin: 20px 0;
+  border-radius: 8px;
+  background-color: #f0f0f0;
+  border: 2px solid #ddd;
+  text-align: center;
+  font-size: 1.1em;
+  color: #333;
+}
+
+#game-ground {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+#shout-button {
+  padding: 10px 20px;
+  font-size: 1.1em;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 10px 0;
+}
+
+#shout-button:hover {
+  background-color: #45a049;
+}
+
+.player-score {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  margin: 5px 0;
+  background-color: #f9f9f9;
+  border-radius: 5px;
+}
+
+#pool-players button {
+  padding: 8px 15px;
+  margin: 5px;
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#pool-players button:hover {
+  background-color: #1976D2;
+}
+
+#shout-display {
+  padding: 10px;
+  margin: 10px 0;
+  background-color: #fff3cd;
+  border: 1px solid #ffeeba;
+  border-radius: 4px;
+  color: #856404;
+}
