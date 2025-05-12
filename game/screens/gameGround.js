@@ -10,21 +10,35 @@ export default function renderGameGround(data) {
       <h2 id="shout-display"></h2>
       <div id="pool-players"></div>
       <button id="shout-button">Gritar ${data.role}</button>
+      <div id="game-message" class="message-display"></div>
     </div>
   `;
 
   const nickname = data.nickname;
-  const polos = [];
+  let polos = []; // Array para almacenar los polos de la ronda actual
   const myRole = data.role;
   const shoutbtn = document.getElementById("shout-button");
   const shoutDisplay = document.getElementById("shout-display");
   const container = document.getElementById("pool-players");
+  const gameMessage = document.getElementById("game-message");
 
   if (myRole !== "marco") {
     shoutbtn.style.display = "none";
   }
 
   shoutDisplay.style.display = "none";
+
+  function updatePoloButtons() {
+    if (myRole === "marco" && polos.length > 0) {
+      container.innerHTML = "<p>Haz click sobre el polo que quieres escoger:</p>";
+      polos.forEach((elemt) => {
+        const button = document.createElement("button");
+        button.innerHTML = `Un jugador gritó: ${elemt.message}`;
+        button.setAttribute("data-key", elemt.userId);
+        container.appendChild(button);
+      });
+    }
+  }
 
   // Replace socket.emit with HTTP requests
   shoutbtn.addEventListener("click", async () => {
@@ -49,6 +63,9 @@ export default function renderGameGround(data) {
         socketId: socket.id,
         poloId: key,
       });
+      // Limpiar los botones y el array después de seleccionar un polo
+      container.innerHTML = "";
+      polos = [];
     }
   });
 
@@ -56,15 +73,10 @@ export default function renderGameGround(data) {
   socket.on("notification", (data) => {
     console.log("Notification", data);
     if (myRole === "marco") {
-      container.innerHTML =
-        "<p>Haz click sobre el polo que quieres escoger:</p>";
+      // Agregar el nuevo polo al array sin limpiar los anteriores
       polos.push(data);
-      polos.forEach((elemt) => {
-        const button = document.createElement("button");
-        button.innerHTML = `Un jugador gritó: ${elemt.message}`;
-        button.setAttribute("data-key", elemt.userId);
-        container.appendChild(button);
-      });
+      // Actualizar los botones mostrando todos los polos acumulados
+      updatePoloButtons();
     } else {
       shoutbtn.style.display = "block";
       shoutDisplay.innerHTML = `Marco ha gritado: ${data.message}`;
@@ -72,8 +84,43 @@ export default function renderGameGround(data) {
     }
   });
 
-  // Keep socket.on listeners for game over notification
+  // Handle game over notification
   socket.on("notifyGameOver", (data) => {
-    navigateTo("/gameOver", { message: data.message, nickname });
+    gameMessage.innerHTML = data.message;
+    gameMessage.style.display = "block";
+    container.innerHTML = "";
+    shoutbtn.style.display = "none";
+    shoutDisplay.style.display = "none";
+    // Limpiar el array de polos para la siguiente ronda
+    polos = [];
+    
+    // Re-enable shout button after 3 seconds for next round
+    setTimeout(() => {
+      if (myRole === "marco") {
+        shoutbtn.style.display = "block";
+      }
+      gameMessage.style.display = "none";
+    }, 3000);
+  });
+
+  // Handle winner notification and redirect to results
+  socket.on("game-winner", (data) => {
+    gameMessage.innerHTML = data.message;
+    gameMessage.style.display = "block";
+    container.innerHTML = "";
+    shoutbtn.style.display = "none";
+    shoutDisplay.style.display = "none";
+    
+    // Guardar los datos del juego en localStorage antes de redirigir
+    localStorage.setItem('gameResults', JSON.stringify({
+      winner: data.winner,
+      players: data.players,
+      message: data.message
+    }));
+    
+    // Redirect to results screen after showing the message
+    setTimeout(() => {
+      window.location.href = "/results";
+    }, 2000);
   });
 }

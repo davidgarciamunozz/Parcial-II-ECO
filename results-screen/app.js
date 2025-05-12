@@ -7,28 +7,62 @@ function clearScripts() {
   document.getElementById("app").innerHTML = "";
 }
 
-let route = { path: "/", data: {} };
-renderRoute(route);
+// Modificar la lógica de ruta inicial
+function initializeRoute() {
+  const gameResults = JSON.parse(localStorage.getItem('gameResults'));
+  if (gameResults) {
+    // Si hay resultados guardados, ir directamente a la pantalla final
+    renderRoute({ path: "/screen2", data: gameResults });
+  } else {
+    // Si no, ir a la pantalla de puntuaciones en vivo
+    renderRoute({ path: "/", data: {} });
+  }
+}
 
-function renderRoute(currentRoute) {
-  switch (currentRoute?.path) {
+function renderRoute(route) {
+  clearScripts();
+  switch (route.path) {
     case "/":
-      clearScripts();
-      renderScreen1(currentRoute?.data);
+      renderScreen1(route.data);
       break;
     case "/screen2":
-      clearScripts();
-      renderScreen2(currentRoute?.data);
+      renderScreen2(route.data);
       break;
     default:
-      const app = document.getElementById("app");
-      app.innerHTML = `<h1>404 - Not Found</h1><p>The page you are looking for does not exist.</p>`;
+      // Por defecto, mostrar la pantalla 1 si la ruta no es reconocida
+      renderScreen1(route.data);
   }
 }
 
 function navigateTo(path, data) {
-  route = { path, data };
-  renderRoute(route);
+  const newRoute = { path, data };
+  renderRoute(newRoute);
 }
 
-export { navigateTo, socket };
+async function makeRequest(url, method, body) {
+  try {
+    const BASE_URL = "http://localhost:5050";
+    let response = await fetch(`${BASE_URL}${url}`, {
+      method: method,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error("API request failed:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+// Inicializar la ruta al cargar la página
+initializeRoute();
+
+export { navigateTo, socket, makeRequest };
